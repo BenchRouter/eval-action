@@ -27,6 +27,19 @@ Run the root action after your setup steps.
 Env on the calling step, such as secrets and `BENCHROUTER_*`, reaches the runtime.
 The BenchRouter CLI generates and upgrades this file for you.
 
+## The `@v1` promise
+
+While `v1` moves, these stay fixed:
+
+- No new required secrets. A `v1` release never needs a secret that your workflow does not pass today.
+- No new permissions. A `v1` release never needs a workflow permission beyond what the generated workflow grants today.
+- No runner changes. A `v1` release runs on the runner your eval job already uses, including self-hosted runners.
+- Stable inputs and outputs. The root action's `node` input and the `prepare` step's `node` output keep their names and meaning. New inputs are optional.
+
+`v1` does get fixes: new vendored bootstrap and trust files, and plumbing fixes inside the composite steps.
+Anything that breaks the promise above ships as `v2`. Moving to `v2` is your choice, and `benchrouter upgrade` makes the change.
+A strict team pins a full commit SHA instead of `v1`. See Security.
+
 ## Security
 
 - The trust root is the vendored Ed25519 public keys in `vendor/trust.json`.
