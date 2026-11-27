@@ -1,0 +1,33 @@
+name: BenchRouter evals
+description: Run BenchRouter evals. Use after BenchRouter/eval-action/prepare and your own setup steps.
+inputs:
+  node:
+    description: Node 24 path from the prepare step output.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Run BenchRouter
+      shell: bash
+      env:
+        BENCHROUTER_BOOTSTRAP_NODE: ${{ inputs.node }}
+      run: '"$BENCHROUTER_BOOTSTRAP_NODE" .br-control/.benchrouter/bootstrap.mjs run'
+    - name: Upload BenchRouter results
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: benchrouter-results-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |-
+          .br-results
+          !.br-results/artifacts/**
+        include-hidden-files: true
+        if-no-files-found: ignore
+        retention-days: 1
+    - name: Upload evaluator artifacts
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: benchrouter-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .br-results/artifacts
+        include-hidden-files: true
+        if-no-files-found: ignore

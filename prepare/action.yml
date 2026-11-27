@@ -1,0 +1,43 @@
+name: BenchRouter prepare
+description: Run before your own setup steps. Fetches the BenchRouter control files and records the Node 24 interpreter.
+outputs:
+  node:
+    description: Absolute path of the Node 24 interpreter that BenchRouter uses.
+    value: ${{ steps.benchrouter_bootstrap_node.outputs.node }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        path: .br-control
+        persist-credentials: false
+        fetch-depth: 1
+        sparse-checkout: .github/workflows/benchrouter-evals.yml
+        sparse-checkout-cone-mode: false
+    - name: Install BenchRouter control files
+      shell: bash
+      env:
+        BENCHROUTER_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        mkdir -p .br-control/.benchrouter
+        cp "$BENCHROUTER_ACTION_PATH/../vendor/bootstrap.mjs" .br-control/.benchrouter/bootstrap.mjs
+        cp "$BENCHROUTER_ACTION_PATH/../vendor/trust.json" .br-control/.benchrouter/trust.json
+    - name: Setup Node.js
+      id: benchrouter_node24
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: "24"
+        package-manager-cache: false
+    - name: Record BenchRouter Node interpreter
+      id: benchrouter_bootstrap_node
+      shell: bash
+      run: |
+        node --input-type=module <<'BENCHROUTER_NODE'
+        import { appendFileSync, realpathSync } from 'node:fs';
+        import { isAbsolute } from 'node:path';
+        const node = realpathSync(process.execPath);
+        if (process.versions.node.split('.')[0] !== '24' || !isAbsolute(node) || node.includes('\n') || node.includes('\r')) {
+          throw new Error('Expected an absolute Node 24 interpreter');
+        }
+        appendFileSync(process.env.GITHUB_OUTPUT, `node=${node}\n`);
+        BENCHROUTER_NODE
