@@ -23,3 +23,21 @@ jobs:
         run: bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/914e7df21a07ef503a81201c76d2b11c789d3fca/scripts/download-actionlint.bash) 1.7.12
       - name: Run actionlint
         run: ./actionlint -color
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: prepare
+        uses: ./prepare
+      - name: Assert control files and Node path
+        env:
+          NODE_PATH_OUT: ${{ steps.prepare.outputs.node }}
+        run: |
+          set -euo pipefail
+          cmp .br-control/.benchrouter/bootstrap.mjs vendor/bootstrap.mjs
+          cmp .br-control/.benchrouter/trust.json vendor/trust.json
+          case "$NODE_PATH_OUT" in /*) ;; *) echo "Node path is not absolute: $NODE_PATH_OUT"; exit 1 ;; esac
+          test "$("$NODE_PATH_OUT" -p 'process.versions.node.split(".")[0]')" = "24"

@@ -35,6 +35,7 @@ The BenchRouter CLI generates and upgrades this file for you.
 - Strict teams pin the action to a full commit SHA, for example `BenchRouter/eval-action@<commit sha>`. Let Dependabot (`github-actions` ecosystem) bump the pin.
 - Tags `v*` are protected. Only org admins can create or move them.
 - Releases are immutable.
+- The caller's step env, including dispatch-only secrets, is visible to every step of the root composite action. That includes the two pinned, GitHub-owned `actions/upload-artifact` steps, which do not read it.
 
 ## How BenchRouter releases this
 

@@ -1,0 +1,11 @@
+# Fixture for the smoke job in ci.yml. The prepare action sparse-checks out this path.
+name: BenchRouter Evals fixture
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  noop:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "fixture only"
